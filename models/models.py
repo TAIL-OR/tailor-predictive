@@ -31,6 +31,7 @@ args = parser.parse_args()
 MODEL = "XGBRegressor" if args.model == 'xgboost' else "LGBMRegressor"
 N_TRIALS = args.n_trials
 TRUE_HORIZON = args.horizon
+
 SAVE_PLOTS = False
 
 def wmape(y_true, y_pred):
@@ -86,6 +87,12 @@ data['is_holiday'] = data['ds'].dt.date.apply(lambda x: 1 if x in br_holidays el
 static_features = ['is_holiday']
 
 max_date = data['ds'].max()
+
+#pega o dia hoje, subtrai com max date e pega o total de dias que resultou e adiciona no TRUE_HORIZON
+today = pd.to_datetime('today')
+days = (max_date - today).days
+TRUE_HORIZON = days + TRUE_HORIZON
+
 two_months_before = max_date - pd.DateOffset(months=2)
 
 train = data.loc[data['ds'] < two_months_before]

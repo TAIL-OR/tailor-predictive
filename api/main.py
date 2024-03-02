@@ -3,6 +3,7 @@ import pandas as pd
 import subprocess
 import os
 from utils import months
+import datetime
 
 # get the parent directory of the current path
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,6 @@ app.config["DEBUG"] = True
 data_predicted = pd.read_csv(os.path.join(results_path, 'forecast_full_lgbm.csv'))
 max_date = data_predicted['ds'].max()
 
-print(int(max_date.split('-')[1]))
 
 @app.route('/predict', methods=['GET'])
 def predict(): 
@@ -26,14 +26,14 @@ def predict():
     This function will return the forecast for the month passed as a parameter
     month: int - The month to forecast
     """
-    month = request.args.get('month')
+    month = request.args.get('months')
     if month is None:
         return 400
     
     data_predicted = pd.read_csv('../results/forrecast_full_lgbm.csv')
     max_date = data_predicted['ds'].max()
 
-    if month > max_date.split('-')[1]:
+    if pd.datetime.now() + pd.DateOffset(months=month) > pd.to_datetime(max_date):
         subprocess.run(['python3', os.path.join(scripts_path, 'update_data.py')])
         subprocess.run(['python3', os.path.join(models_path, 'run_model.py'), '--model', 'lgbm', '--n_trials', '10', '--horizon', '30'])
         
